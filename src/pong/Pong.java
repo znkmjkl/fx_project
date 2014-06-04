@@ -43,6 +43,17 @@ public class Pong extends Application {
         gameArea.setMinWidth(width);
         gameArea.setStyle("-fx-background-color: green;");
         
+        final Label points1 = new Label("0");
+        final Label points2 = new Label("0");
+        
+        points1.setLayoutX(10);
+        points1.setLayoutY(250);
+        points1.setStyle("-fx-font-size: 36px;");
+        
+        points2.setLayoutX(370);
+        points2.setLayoutY(250);
+        points2.setStyle("-fx-font-size: 36px;");
+        
         final Label paddle1 = new Label();
         final Label paddle2 = new Label();
         
@@ -66,12 +77,12 @@ public class Pong extends Application {
         circle = new Circle(10, Color.BLUE);
         circle.relocate(100, 100);
 
-        canvas.getChildren().addAll(gameArea, circle, paddle1, paddle2);
+        canvas.getChildren().addAll(gameArea, circle, paddle1, paddle2, points1, points2);
         
-        final Timeline loop = new Timeline(new KeyFrame(Duration.millis(10), new EventHandler<ActionEvent>() {
+        final Timeline loop = new Timeline(new KeyFrame(Duration.millis(25), new EventHandler<ActionEvent>() {
 
-            double deltaX = 3;
-            double deltaY = 3;
+            double deltaX = -5;
+            double deltaY = 5;
 
             @Override
             public void handle(final ActionEvent t) {
@@ -79,25 +90,46 @@ public class Pong extends Application {
                 circle.setLayoutY(circle.getLayoutY() + deltaY);
 
                 final Bounds bounds = gameArea.getBoundsInLocal();
-
-                final boolean atRightBorder = circle.getLayoutX() >= (bounds.getMaxX() - circle.getRadius());
-                final boolean atLeftBorder = circle.getLayoutX() <= (bounds.getMinX() + circle.getRadius());
+                
+                double minX = paddle1.getLayoutX() + paddle1.getMinWidth();
+                double maxX = paddle2.getLayoutX();
+                double y1 = paddle1.getLayoutY() + paddle1.getMinHeight()/2;
+                double y2 = paddle2.getLayoutY() + paddle2.getMinHeight()/2;
+                
+                final boolean atRightBorder = (circle.getLayoutX() == (maxX - circle.getRadius())) && ((y2+25) >= circle.getLayoutY() && (y2-25) <= circle.getLayoutY());
+                final boolean atLeftBorder = (circle.getLayoutX() == (minX + circle.getRadius())) && ((y1+25) >= circle.getLayoutY() && (y1-25) <= circle.getLayoutY());
                 final boolean atBottomBorder = circle.getLayoutY() >= (bounds.getMaxY() - circle.getRadius());
                 final boolean atTopBorder = circle.getLayoutY() <= (bounds.getMinY() + circle.getRadius());
 
-                if (atRightBorder || atLeftBorder) {
+                if (atLeftBorder) {
+                    deltaX *= -1;
+                } else if (atRightBorder) {
                     deltaX *= -1;
                 }
+                
+                if (circle.getLayoutX()+circle.getRadius()*2 < bounds.getMinX()) {
+                    circle.setLayoutX(200);
+                    deltaX *= -1;
+                    
+                    Integer score2 = Integer.parseInt(points2.getText())+1;
+                    points2.setText(score2.toString());
+                } 
+                
+                if (circle.getLayoutX()-circle.getRadius()*2 > bounds.getMaxX()) {
+                    circle.setLayoutX(200);
+                    deltaX *= -1;
+                    
+                    Integer score1 = Integer.parseInt(points1.getText())+1;
+                    points1.setText(score1.toString());
+                }
+
+                
                 if (atBottomBorder || atTopBorder) {
                     deltaY *= -1;
                 }
             }
         }));
 
-        System.out.println(gameArea.getBoundsInLocal().getMaxX());
-        System.out.println(gameArea.getBoundsInLocal().getMaxY());
-        System.out.println(gameArea.getBoundsInLocal().getMaxZ());
-        System.out.println(gameArea.getBoundsInLocal().getWidth());
         
         final AnimationTimer movePaddle1Up = new AnimationTimer() {
           @Override
