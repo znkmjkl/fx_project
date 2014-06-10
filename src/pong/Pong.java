@@ -5,23 +5,26 @@ import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Application;
 import static javafx.application.Application.launch;
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.LongProperty;
-import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.property.SimpleLongProperty;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.geometry.Bounds;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.Separator;
+import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
@@ -30,13 +33,11 @@ public class Pong extends Application {
     public static Circle circle;
     public static Pane canvas;
 
-    @Override
-    public void start(final Stage primaryStage) {
-
+    public void game(final Stage primaryStage){
         canvas = new Pane();
-        final Scene scene = new Scene(canvas, 400, 300);
+        final Scene scene = new Scene(canvas, 600, 400);
         
-        int width = 400; int height = 250;
+        int width = 600; int height = 360;
         
         final Label gameArea = new Label();
         gameArea.setMinHeight(height);
@@ -47,25 +48,25 @@ public class Pong extends Application {
         final Label points2 = new Label("0");
         
         points1.setLayoutX(10);
-        points1.setLayoutY(250);
+        points1.setLayoutY(360);
         points1.setStyle("-fx-font-size: 36px;");
         
-        points2.setLayoutX(370);
-        points2.setLayoutY(250);
+        points2.setLayoutX(570);
+        points2.setLayoutY(360);
         points2.setStyle("-fx-font-size: 36px;");
         
         final Label paddle1 = new Label();
         final Label paddle2 = new Label();
         
-        paddle1.setMinHeight(50);
-        paddle1.setMinWidth(10);
+        paddle1.setMinHeight(100);
+        paddle1.setMinWidth(20);
         paddle1.setLayoutX(10);
-        paddle1.setLayoutY(90);
+        paddle1.setLayoutY(140);
         
-        paddle2.setMinHeight(50);
-        paddle2.setMinWidth(10);
-        paddle2.setLayoutX(380);
-        paddle2.setLayoutY(90);
+        paddle2.setMinHeight(100);
+        paddle2.setMinWidth(20);
+        paddle2.setLayoutX(570);
+        paddle2.setLayoutY(140);
         
         paddle1.setStyle("-fx-background-color: black;");
         paddle2.setStyle("-fx-background-color: black;");
@@ -198,6 +199,61 @@ public class Pong extends Application {
         
         loop.setCycleCount(Timeline.INDEFINITE);
         loop.play();
+    }
+    
+    
+    
+    @Override
+    public void start(final Stage primaryStage) {
+        GridPane grid = new GridPane();
+        grid.setAlignment(Pos.CENTER);
+        grid.setHgap(30);
+        grid.setVgap(30);
+        
+   
+        
+        Button playBtn = new Button("PLAY");
+        playBtn.setAlignment(Pos.CENTER);
+        playBtn.setMinSize(200, 40);
+        grid.add(playBtn, 0,0);
+        
+        
+        Button optionsBtn = new Button("OPTIONS");
+        optionsBtn.setAlignment(Pos.CENTER);
+        optionsBtn.setMinSize(200, 40);
+        grid.add(optionsBtn, 0,1);
+        
+        Button creditsBtn = new Button("CREDITS");
+        creditsBtn.setAlignment(Pos.CENTER);
+        creditsBtn.setMinSize(200, 40);
+        grid.add(creditsBtn, 0,2);
+        
+        Button quitBtn = new Button("QUIT");
+        quitBtn.setAlignment(Pos.CENTER);
+        quitBtn.setMinSize(200, 40);
+        grid.add(quitBtn, 0,3);
+        
+        playBtn.setOnAction(new EventHandler<ActionEvent>() {
+           @Override
+            public void handle(ActionEvent e) {        
+               game(primaryStage);             
+           }
+        });
+        
+        quitBtn.setOnAction(new EventHandler<ActionEvent>() {
+            @Override   
+            public void handle(ActionEvent e) {          
+               primaryStage.close();
+            }
+        });
+        
+         
+        Scene scene = new Scene(grid, 600, 400);       
+        
+        primaryStage.setTitle("PING PONG");
+        primaryStage.setScene(scene);
+        primaryStage.show();
+       
     }
 
     public static void main(final String[] args) {
