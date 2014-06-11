@@ -1,5 +1,6 @@
 package pong;
 
+import javafx.animation.Animation;
 import javafx.animation.AnimationTimer;
 import javafx.animation.KeyFrame;
 import javafx.animation.PauseTransition;
@@ -44,9 +45,14 @@ public class Pong extends Application {
     
     public void game(final Stage primaryStage){
         canvas = new Pane();
-        final Scene scene = new Scene(canvas, 600, 400);
         
-        int width = 600; int height = 360;
+        final int width = 600; int height = 360;
+        final int scorePanelHeight = 80;
+        
+        final Scene scene = new Scene(canvas, width, height+scorePanelHeight);
+        
+        final int paddleHeight = 100;
+        final int paddleWidth = 20;
         
         final Label gameArea = new Label();
         gameArea.setMinHeight(height);
@@ -56,26 +62,34 @@ public class Pong extends Application {
         final Label points1 = new Label("0");
         final Label points2 = new Label("0");
         
-        points1.setLayoutX(10);
-        points1.setLayoutY(360);
-        points1.setStyle("-fx-font-size: 36px;");
+        final Label info = new Label("Press SPACE to start");
         
-        points2.setLayoutX(570);
-        points2.setLayoutY(360);
-        points2.setStyle("-fx-font-size: 36px;");
+        double fontSize = scorePanelHeight/2.2;
+        
+        points1.setLayoutX(0.06*width+(fontSize*0.2));
+        points1.setLayoutY(height+scorePanelHeight*0.2);
+        points1.setStyle("-fx-font-size: " + fontSize + "px;");
+        
+        points2.setLayoutX(width-(0.1*width+(fontSize*0.2)));
+        points2.setLayoutY(height+scorePanelHeight*0.2);
+        points2.setStyle("-fx-font-size: " + fontSize + "px;");
+        
+        info.setLayoutX(0.3*width+(fontSize*0.2));
+        info.setLayoutY(height+scorePanelHeight*0.3);
+        info.setStyle("-fx-font-size: " + fontSize/1.5 + "px;");
         
         final Label paddle1 = new Label();
         final Label paddle2 = new Label();
         
-        paddle1.setMinHeight(100);
-        paddle1.setMinWidth(20);
+        paddle1.setMinHeight(paddleHeight);
+        paddle1.setMinWidth(paddleWidth);
         paddle1.setLayoutX(10);
-        paddle1.setLayoutY(140);
+        paddle1.setLayoutY(gameArea.getMinHeight()/2-(paddle1.getMinHeight()/2));
         
-        paddle2.setMinHeight(100);
-        paddle2.setMinWidth(20);
-        paddle2.setLayoutX(570);
-        paddle2.setLayoutY(140);
+        paddle2.setMinHeight(paddleHeight);
+        paddle2.setMinWidth(paddleWidth);
+        paddle2.setLayoutX(gameArea.getMinWidth()-(paddle2.getMinWidth()+10));
+        paddle2.setLayoutY(gameArea.getMinHeight()/2-(paddle2.getMinHeight()/2));
         
         paddle1.setStyle("-fx-background-color: black;");
         paddle2.setStyle("-fx-background-color: black;");
@@ -85,13 +99,13 @@ public class Pong extends Application {
         primaryStage.show();
 
         circle = new Circle(10, Color.BLUE);
-        circle.relocate(100, 100);
+        circle.relocate(gameArea.getMinWidth()/2-circle.getRadius(), gameArea.getMinHeight()/2-circle.getRadius());
 
-        canvas.getChildren().addAll(gameArea, circle, paddle1, paddle2, points1, points2);
+        canvas.getChildren().addAll(gameArea, circle, paddle1, paddle2, points1, points2, info);
         
         final Timeline loop = new Timeline(new KeyFrame(Duration.millis(25), new EventHandler<ActionEvent>() {
 
-            double deltaX = -5;
+            double deltaX = 5;
             double deltaY = 5;
 
             @Override
@@ -103,42 +117,60 @@ public class Pong extends Application {
                 
                 double minX = paddle1.getLayoutX() + paddle1.getMinWidth();
                 double maxX = paddle2.getLayoutX();
-                double y1 = paddle1.getLayoutY() + paddle1.getMinHeight()/2;
-                double y2 = paddle2.getLayoutY() + paddle2.getMinHeight()/2;
                 
-                final boolean atRightBorder = (circle.getLayoutX() == (maxX - circle.getRadius())) && ((y2+25) >= circle.getLayoutY() && (y2-25) <= circle.getLayoutY());
-                final boolean atLeftBorder = (circle.getLayoutX() == (minX + circle.getRadius())) && ((y1+25) >= circle.getLayoutY() && (y1-25) <= circle.getLayoutY());
+                double y1 = paddle1.getLayoutY();
+                double y2 = paddle2.getLayoutY();
+                
+                //zmienne określające, czy piłeczka trafiła w paletkę
+                final boolean atRightBorder = (circle.getLayoutX()+circle.getRadius() == (maxX)) && ((y2) <= circle.getLayoutY() && (y2+paddle1.getMinHeight()) >= circle.getLayoutY());
+                final boolean atLeftBorder = (circle.getLayoutX() == (minX+circle.getRadius())) && ((y1) <= circle.getLayoutY() && (y1+paddle1.getMinHeight()) >= circle.getLayoutY());
+                
                 final boolean atBottomBorder = circle.getLayoutY() >= (bounds.getMaxY() - circle.getRadius());
                 final boolean atTopBorder = circle.getLayoutY() <= (bounds.getMinY() + circle.getRadius());
-
+                
+                //Jeśli trafiła w którąś paletkę - zmiana kierunku na przeciwny
                 if (atLeftBorder) {
                     deltaX *= -1;
                 } else if (atRightBorder) {
                     deltaX *= -1;
                 }
                 
-                if (circle.getLayoutX()+circle.getRadius()*2 < bounds.getMinX()) {
-                    circle.setLayoutX(200);
+                
+                //Jeśli jest już za którąś z paletek
+                if (circle.getLayoutX() < bounds.getMinX()-circle.getRadius()*2) {
+                    circle.setLayoutX(gameArea.getMinWidth()/2-circle.getRadius());
+                    circle.setLayoutY(gameArea.getMinHeight()/2-circle.getRadius());
                     deltaX *= -1;
                     
                     Integer score2 = Integer.parseInt(points2.getText())+1;
                     points2.setText(score2.toString());
-                } 
-                
-                if (circle.getLayoutX()-circle.getRadius()*2 > bounds.getMaxX()) {
-                    circle.setLayoutX(200);
+                } else if (circle.getLayoutX()-circle.getRadius() > bounds.getMaxX()) {
+                    circle.setLayoutX(gameArea.getMinWidth()/2-circle.getRadius());
+                    circle.setLayoutY(gameArea.getMinHeight()/2-circle.getRadius());
                     deltaX *= -1;
                     
                     Integer score1 = Integer.parseInt(points1.getText())+1;
                     points1.setText(score1.toString());
                 }
 
-                
                 if (atBottomBorder || atTopBorder) {
                     deltaY *= -1;
                 }
             }
         }));
+        
+        loop.setCycleCount(Timeline.INDEFINITE);
+        
+//        scene.setOnKeyPressed(new EventHandler<KeyEvent>() {
+//          @Override
+//          public void handle(KeyEvent event) {
+//            if (event.getCode()==KeyCode.L) {
+//                System.out.println("ruszylem");
+//              loop.setCycleCount(Timeline.INDEFINITE);
+//                 loop.play();
+//            }
+//          }
+//        });
 
         
         final AnimationTimer movePaddle1Up = new AnimationTimer() {
@@ -177,7 +209,7 @@ public class Pong extends Application {
         scene.setOnKeyPressed(new EventHandler<KeyEvent>() {
           @Override
           public void handle(KeyEvent event) {
-            if (event.getCode()==KeyCode.W) { // don't use toString here!!!
+            if (event.getCode()==KeyCode.W) {
               movePaddle1Up.start();
             } else if (event.getCode() == KeyCode.S) {
               movePaddle1Down.start();
@@ -185,6 +217,15 @@ public class Pong extends Application {
               movePaddle2Up.start();  
             } else if (event.getCode() == KeyCode.DOWN) {
               movePaddle2Down.start();  
+            }  else if (event.getCode() == KeyCode.SPACE) {
+                if (loop.getStatus() == Animation.Status.STOPPED || loop.getStatus() == Animation.Status.PAUSED) {
+                    loop.play();
+                    info.setText("Press SPACE to pause");
+                } else if (loop.getStatus() == Animation.Status.RUNNING) {
+                    loop.pause();
+                    info.setText("Press SPACE to resume");
+                }
+
             }
           }
         });
@@ -204,18 +245,22 @@ public class Pong extends Application {
           }
         });
         
-        scene.setOnKeyPressed(new EventHandler<KeyEvent>(){
-            @Override
-            public void handle(KeyEvent event){
-                if (event.getCode() == KeyCode.ESCAPE){
-                    selectMode(primaryStage);
-                }
-            }
-        });
+//        scene.setOnKeyPressed(new EventHandler<KeyEvent>(){
+//            @Override
+//            public void handle(KeyEvent event){
+//                if (event.getCode() == KeyCode.ESCAPE){
+//                    selectMode(primaryStage);
+//                }
+//            }
+//        });
         
-        loop.setCycleCount(Timeline.INDEFINITE);
-        loop.play();
+//        loop.setCycleCount(Timeline.INDEFINITE);
+//        loop.play();
     }
+    
+    
+    
+    
     
     //Wybieranie przeciwnika
     public void selectMode(final Stage primaryStage){
@@ -234,7 +279,7 @@ public class Pong extends Application {
         
         Button backBtn = new Button("BACK");
         backBtn.setMinSize(200, 40);
-        grid.add(backBtn,0,4);       
+        grid.add(backBtn, 0,4);       
         
         
         playerBtn.setOnAction(new EventHandler<ActionEvent>() {
@@ -242,6 +287,7 @@ public class Pong extends Application {
             public void handle(ActionEvent e) {        
                 Pong.CLICK.play();
                 game(primaryStage);
+                System.out.println("siema");
            }
         });
         
@@ -492,7 +538,6 @@ public class Pong extends Application {
             public void handle(ActionEvent e) {
                Pong.CLICK.play();
                selectMode(primaryStage);
-              
            }
         });
         
