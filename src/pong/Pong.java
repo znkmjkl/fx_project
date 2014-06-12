@@ -181,7 +181,7 @@ public class Pong extends Application {
                 } else if(mode == "medium"){
                     speed = 10;
                 } else if(mode == "hard"){                    
-                    speed = 12;
+                    speed = 10;
                 }
                 if (circle.getLayoutY() > paddle2.getLayoutY() && deltaX > 0){
                     if (height-100 > paddle2.getLayoutY())
