@@ -52,7 +52,7 @@ public class Pong extends Application {
     public Timeline loop;
     public Timeline pauseExecuting;
     public boolean gameOver = false;
-    public int winScore = 10;
+    public int winScore = 5;
     
     public int pauseStamps = 0;
     
@@ -63,7 +63,7 @@ public class Pong extends Application {
     
     int height = 360, width = 600, fontSize;
 
-    Label info = new Label();
+    Label info = new Label("Press SPACE to start");
     Label rematchText = new Label();
     boolean computer = false;
     Circle circle1 = new Circle(25, Color.AQUA);; 
@@ -76,8 +76,8 @@ public class Pong extends Application {
     Text points2 = new Text("0");
     
     int scorePanelHeight = 80;
-    final int durationAtStart = 24;
-    int durationToSet = 25;
+    final int durationAtStart = 21;
+    int durationToSet = durationAtStart;
 
     int numberOfBounces = 0;
     
@@ -109,8 +109,6 @@ public class Pong extends Application {
         rematchText.setFill(Color.CORAL);
         rematchText.setFont(Font.font("Verdana", FontWeight.BOLD, 30));
         rematchText.setVisible(false);
-        
-        final Label info = new Label("Press SPACE to start");
         
         double fontSize = scorePanelHeight/2.2;
         
@@ -159,8 +157,11 @@ public class Pong extends Application {
         EventHandler<ActionEvent> increaseSpeed = new EventHandler<ActionEvent>() {
             public void handle(final ActionEvent t) {
                 durationToSet -= 1;
+                int increasingValue = durationAtStart - durationToSet;
                 loop = getLoop(durationToSet);
-                loop.setCycleCount(2000/durationToSet);
+                loop.setCycleCount(increasingValue*50);
+                System.out.println(increasingValue*50);
+                //System.out.println((5000+increasingValue)/durationToSet);
                 loop.setOnFinished(this);
                 loop.play();
             }
@@ -302,7 +303,6 @@ public class Pong extends Application {
                     circle.setLayoutX(circle.getLayoutX() + deltaX);
                     circle.setLayoutY(circle.getLayoutY() + deltaY);
                 } else {
-                    //pauseStamps--;
                     pauseExecuting.play();
                 }
 
