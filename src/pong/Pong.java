@@ -46,16 +46,42 @@ public class Pong extends Application {
     private static final AudioClip applause = new AudioClip(Pong.class.getResource("/applause.mp3").toString());
     public boolean musicON = true;
     public boolean musicStatus = true;
-    public String mode = "easy";
+    public String mode = "medium";
     public int speed;   
     public boolean GameStatus = true;
     public Timeline loop;
+    public Timeline pauseExecuting;
     public boolean gameOver = false;
     public int winScore = 10;
     
     public int pauseStamps = 0;
+    
+    public Label paddle1 = new Label();
+    public Label paddle2 = new Label();
+    
+    public Label gameArea;
+    
+    int height = 360, width = 600, fontSize;
 
+    Label info = new Label();
+    Label rematchText = new Label();
+    boolean computer = false;
+    Circle circle1 = new Circle(25, Color.AQUA);; 
+    Circle circle2 = new Circle(25, Color.AQUA);;
+    
+    double deltaX = 5;
+    double deltaY = 5;
+    
+    Text points1 = new Text("0");
+    Text points2 = new Text("0");
+    
+    int scorePanelHeight = 80;
+    final int durationAtStart = 24;
+    int durationToSet = 25;
 
+    int numberOfBounces = 0;
+    
+    final int paddleStep = 5;
     /*
         GRA
             */
@@ -67,16 +93,12 @@ public class Pong extends Application {
             Pong.gameMUSIC.play();
         }
         
-        
-        final int width = 600; int height = 360;
-        final int scorePanelHeight = 80;
-        
         final Scene scene = new Scene(canvas, width, height+scorePanelHeight);
         
         final int paddleHeight = 100;
         final int paddleWidth = 20;
         
-        final Label gameArea = new Label();
+        gameArea = new Label();
         gameArea.setMinHeight(height);
         gameArea.setMinWidth(width);
         gameArea.setStyle("-fx-background-image: url(\"/ppBoard.png\");");
@@ -88,9 +110,6 @@ public class Pong extends Application {
         rematchText.setFont(Font.font("Verdana", FontWeight.BOLD, 30));
         rematchText.setVisible(false);
         
-        final Text points1 = new Text("0");
-        final Text points2 = new Text("0");
-        
         final Label info = new Label("Press SPACE to start");
         
         double fontSize = scorePanelHeight/2.2;
@@ -100,7 +119,6 @@ public class Pong extends Application {
         points1.setStyle("-fx-font-size: " + fontSize + "px;");        
         points1.setBoundsType(TextBoundsType.VISUAL);
         
-        Circle circle1 = new Circle(25, Color.AQUA);
         circle1.setLayoutX(0.06*width+(fontSize*0.5));
         circle1.setLayoutY(height+scorePanelHeight*0.5);
         
@@ -108,19 +126,13 @@ public class Pong extends Application {
         points2.setLayoutY(height+scorePanelHeight*0.65);
         points2.setStyle("-fx-font-size: " + fontSize + "px;");
         points2.setBoundsType(TextBoundsType.VISUAL);
-        
-        Circle circle2 = new Circle(25, Color.AQUA);
+
         circle2.setLayoutX(width-(0.1*width+(fontSize*0.5)));
         circle2.setLayoutY(height+scorePanelHeight*0.5);
-        
-        
         
         info.setLayoutX(0.3*width+(fontSize*0.2));
         info.setLayoutY(height+scorePanelHeight*0.3);
         info.setStyle("-fx-font-size: " + fontSize/1.5 + "px;");
-        
-        final Label paddle1 = new Label();
-        final Label paddle2 = new Label();
         
         paddle1.setMinHeight(paddleHeight);
         paddle1.setMinWidth(paddleWidth);
@@ -144,168 +156,34 @@ public class Pong extends Application {
 
         canvas.getChildren().addAll(gameArea, circle, paddle1, rematchText, paddle2, circle1, points1, circle2, points2, info);
         
-        loop = new Timeline(new KeyFrame(Duration.millis(15), new EventHandler<ActionEvent>() {
-
-            double deltaX = 5;
-            double deltaY = 5;
-
+        EventHandler<ActionEvent> increaseSpeed = new EventHandler<ActionEvent>() {
+            public void handle(final ActionEvent t) {
+                durationToSet -= 1;
+                loop = getLoop(durationToSet);
+                loop.setCycleCount(2000/durationToSet);
+                loop.setOnFinished(this);
+                loop.play();
+            }
+        };
+        
+        loop = getLoop(durationToSet);
+        loop.setCycleCount(200);
+        loop.setOnFinished(increaseSpeed);
+        
+        pauseExecuting = new Timeline(new KeyFrame(Duration.millis(250), new EventHandler<ActionEvent>() {
             @Override
             public void handle(final ActionEvent t) {
-                
-                if(pauseStamps <= 0) {
-                    circle.setLayoutX(circle.getLayoutX() + deltaX);
-                    circle.setLayoutY(circle.getLayoutY() + deltaY);
-                } else {
-                    pauseStamps--;
-                }
-
-                final Bounds bounds = gameArea.getBoundsInLocal();
-                
-                double minX = paddle1.getLayoutX() + paddle1.getMinWidth();
-                double maxX = paddle2.getLayoutX();
-                
-                double y1 = paddle1.getLayoutY();
-                double y2 = paddle2.getLayoutY();
-                
-                //zmienne określające, czy piłeczka trafiła w paletkę
-                final boolean atRightBorder = (circle.getLayoutX()+circle.getRadius() == (maxX)) && ((y2) <= circle.getLayoutY() && (y2+paddle1.getMinHeight()) >= circle.getLayoutY());
-                final boolean atLeftBorder = (circle.getLayoutX() == (minX+circle.getRadius())) && ((y1) <= circle.getLayoutY() && (y1+paddle1.getMinHeight()) >= circle.getLayoutY());
-                
-                final boolean atBottomBorder = circle.getLayoutY() >= (bounds.getMaxY() - circle.getRadius());
-                final boolean atTopBorder = circle.getLayoutY() <= (bounds.getMinY() + circle.getRadius());
-                
-                //Jeśli trafiła w którąś paletkę - zmiana kierunku na przeciwny
-                if (atLeftBorder) {
-                    ballBounce.play();                    
-                    deltaX *= -1;
-                    
-                } else if (atRightBorder) {
-                    ballBounce.play();                    
-                    deltaX *= -1;
-                }
-
-                //Ustawienia komputera
-                
-                if (computer){
-                    if(mode == "easy"){
-                        speed = 5;
-                    } else if(mode == "medium"){
-                        speed = 10;
-                    } else if(mode == "hard"){                    
-                        speed = 10;
-                    }
-                    if (circle.getLayoutY() > paddle2.getLayoutY() && deltaX > 0){
-                        if (height-100 > paddle2.getLayoutY())
-                            paddle2.setLayoutY(paddle2.getLayoutY() + speed);
-                    } else if (circle.getLayoutY() < paddle2.getLayoutY() && deltaX > 0){
-                        if (gameArea.getBoundsInLocal().getMinY()/2 < paddle2.getLayoutY())
-                            paddle2.setLayoutY(paddle2.getLayoutY() - speed);                    
-                    } 
-                }
-                
-                //Jeśli jest już za którąś z paletek
-                if (circle.getLayoutX() < bounds.getMinX()-circle.getRadius()*2) {
-                    
-                    paddle1.setLayoutY(gameArea.getMinHeight()/2-(paddle1.getMinHeight()/2));
-                    paddle2.setLayoutY(gameArea.getMinHeight()/2-(paddle2.getMinHeight()/2));
-                    
-                    circle.setLayoutX(gameArea.getMinWidth()/2-5+(circle.getRadius()));
-                    circle.setLayoutY(gameArea.getMinHeight()/2-5+(circle.getRadius()));
-                    if(Math.random() > 0.5){                        
-                        deltaX *= -1;
-                    }                    
-                    if(Math.random() > 0.5){
-                        deltaY *= -1;
-                    }
-                    
-                    pauseStamps = 75;
-                    
-                    Integer score2 = Integer.parseInt(points2.getText())+1;
-                    if (score2 >= 10)
-                        points2.setLayoutX(width-(0.1*width+(fontSize*1)));
-                    points2.setText(score2.toString());
-                    
-                    if(score2 == winScore){
-                        loop.pause();
-                        info.setLayoutX(0.3*width+(fontSize*1));
-                        info.setTextFill(Color.FIREBRICK);
-                        if(computer){
-                            info.setText("Computer WIN!");
-                        } else {
-                            info.setText("Player 2 WIN!");
-                        }
-                        
-                        Pong.applause.play();
-                        rematchText.setVisible(true);
-                        gameOver = true;
-                    }
-                    
-                    circle2.setFill(Color.RED);
-                    PauseTransition pause = new PauseTransition(Duration.seconds(0.5));
-                    pause.setOnFinished(new EventHandler<ActionEvent> () {
-                        @Override
-                        public void handle(ActionEvent event){
-                            circle2.setFill(Color.AQUA);
-                        }
-                    });
-                    pause.play(); 
-                } else if (circle.getLayoutX()-circle.getRadius() > bounds.getMaxX()) {
-                    
-                    paddle1.setLayoutY(gameArea.getMinHeight()/2-(paddle1.getMinHeight()/2));
-                    paddle2.setLayoutY(gameArea.getMinHeight()/2-(paddle2.getMinHeight()/2));
-                    
-                    circle.setLayoutX(gameArea.getMinWidth()/2-5+(circle.getRadius()));
-                    circle.setLayoutY(gameArea.getMinHeight()/2-5+(circle.getRadius()));
-                    if(Math.random() > 0.5){                        
-                        deltaX *= -1;
-                    }                    
-                    if(Math.random() > 0.5){
-                        deltaY *= -1;
-                    }
-                    
-                    pauseStamps = 75;
-                    
-                    Integer score1 = Integer.parseInt(points1.getText())+1;
-                    if(score1 >= 10)
-                        points1.setLayoutX(0.06*width+(fontSize*0));                    
-                    points1.setText(score1.toString());
-                   
-                    if(score1 == winScore){
-                        loop.pause();
-                        info.setLayoutX(0.3*width+(fontSize*1));
-                        info.setTextFill(Color.FIREBRICK);                        
-                        info.setText("Player 1 WON!");
-                        Pong.applause.play();
-                        rematchText.setVisible(true);
-                        gameOver = true;
-                    }
-                    
-                    circle1.setFill(Color.RED);                    
-                    PauseTransition pause = new PauseTransition(Duration.seconds(0.5));
-                    pause.setOnFinished(new EventHandler<ActionEvent> () {
-                        @Override
-                        public void handle(ActionEvent event){
-                            circle1.setFill(Color.AQUA);
-                        }
-                    });                    
-                    pause.play(); 
-                }
-
-                if (atBottomBorder || atTopBorder) {
-                    Pong.wallBounce.play();
-                    deltaY *= -1;
-                }
+                pauseStamps--;
             }
         }));
         
-        loop.setCycleCount(Timeline.INDEFINITE);
-
+        pauseExecuting.setCycleCount(1);
         
         final AnimationTimer movePaddle1Up = new AnimationTimer() {
           @Override
           public void handle(long timestamp) {
               if (gameArea.getBoundsInLocal().getMinY()/2 < paddle1.getLayoutY())
-                paddle1.setLayoutY(paddle1.getLayoutY()-5);              
+                paddle1.setLayoutY(paddle1.getLayoutY()-paddleStep);              
           }          
         };
 
@@ -313,7 +191,7 @@ public class Pong extends Application {
           @Override
           public void handle(long timestamp) {
               if (height-100 > paddle1.getLayoutY())
-                paddle1.setLayoutY(paddle1.getLayoutY()+5);
+                paddle1.setLayoutY(paddle1.getLayoutY()+paddleStep);
           }
         };
         
@@ -321,7 +199,7 @@ public class Pong extends Application {
           @Override
           public void handle(long timestamp) {
               if (gameArea.getBoundsInLocal().getMinY()/2 < paddle2.getLayoutY())
-                paddle2.setLayoutY(paddle2.getLayoutY()-5);
+                paddle2.setLayoutY(paddle2.getLayoutY()-paddleStep);
           }
         };
 
@@ -329,7 +207,7 @@ public class Pong extends Application {
           @Override
           public void handle(long timestamp) {
               if (height-100 > paddle2.getLayoutY())
-                paddle2.setLayoutY(paddle2.getLayoutY()+5);
+                paddle2.setLayoutY(paddle2.getLayoutY()+paddleStep);
           }
         };
 
@@ -364,6 +242,8 @@ public class Pong extends Application {
                     info.setLayoutX(0.25*width+(fontSize*0));
                     info.setText("Do you want to quit? (Y/N)");
                     GameStatus = false;
+                    points1 = new Text("0"); points2 = new Text("0");
+                    durationToSet = 25;
                 }                
             } else if (event.getCode() == KeyCode.Y && GameStatus == false){
                 Pong.gameMUSIC.stop();
@@ -410,6 +290,166 @@ public class Pong extends Application {
             }
           }
         });
+    }  
+    
+    public Timeline getLoop(int duration) {
+        loop = new Timeline(new KeyFrame(Duration.millis(duration), new EventHandler<ActionEvent>() {
+
+            @Override
+            public void handle(final ActionEvent t) {
+                
+                if(pauseStamps <= 0) {
+                    circle.setLayoutX(circle.getLayoutX() + deltaX);
+                    circle.setLayoutY(circle.getLayoutY() + deltaY);
+                } else {
+                    //pauseStamps--;
+                    pauseExecuting.play();
+                }
+
+                final Bounds bounds = gameArea.getBoundsInLocal();
+                
+                double minX = paddle1.getLayoutX() + paddle1.getMinWidth();
+                double maxX = paddle2.getLayoutX();
+                
+                double y1 = paddle1.getLayoutY();
+                double y2 = paddle2.getLayoutY();
+                
+                //zmienne określające, czy piłeczka trafiła w paletkę
+                final boolean atRightBorder = (circle.getLayoutX()+circle.getRadius() == (maxX)) && ((y2) <= circle.getLayoutY() && (y2+paddle1.getMinHeight()) >= circle.getLayoutY());
+                final boolean atLeftBorder = (circle.getLayoutX() == (minX+circle.getRadius())) && ((y1) <= circle.getLayoutY() && (y1+paddle1.getMinHeight()) >= circle.getLayoutY());
+                
+                final boolean atBottomBorder = circle.getLayoutY() >= (bounds.getMaxY() - circle.getRadius());
+                final boolean atTopBorder = circle.getLayoutY() <= (bounds.getMinY() + circle.getRadius());
+                
+                //Jeśli trafiła w którąś paletkę - zmiana kierunku na przeciwny
+                if (atLeftBorder) {
+                    ballBounce.play();                    
+                    deltaX *= -1;
+                    numberOfBounces++;
+                    
+                } else if (atRightBorder) {
+                    ballBounce.play();                    
+                    deltaX *= -1;
+                    numberOfBounces++;
+                }
+
+                //Ustawienia komputera
+                
+                if (computer){
+                    if(mode == "easy"){
+                        speed = 5;
+                    } else if(mode == "medium"){
+                        speed = 10;
+                    } else if(mode == "hard"){                    
+                        speed = 10;
+                    }
+                    if (circle.getLayoutY() > paddle2.getLayoutY() && deltaX > 0){
+                        if (height-100 > paddle2.getLayoutY())
+                            paddle2.setLayoutY(paddle2.getLayoutY() + speed);
+                    } else if (circle.getLayoutY() < paddle2.getLayoutY() && deltaX > 0){
+                        if (gameArea.getBoundsInLocal().getMinY()/2 < paddle2.getLayoutY())
+                            paddle2.setLayoutY(paddle2.getLayoutY() - speed);                    
+                    } 
+                }
+                
+                //Jeśli jest już za którąś z paletek
+                if (circle.getLayoutX() < bounds.getMinX()-circle.getRadius()*2) {
+                    
+                    durationToSet = durationAtStart;
+                    pauseStamps = 6;
+                    
+                    paddle1.setLayoutY(gameArea.getMinHeight()/2-(paddle1.getMinHeight()/2));
+                    paddle2.setLayoutY(gameArea.getMinHeight()/2-(paddle2.getMinHeight()/2));
+                    
+                    circle.setLayoutX(gameArea.getMinWidth()/2-5+(circle.getRadius()));
+                    circle.setLayoutY(gameArea.getMinHeight()/2-5+(circle.getRadius()));
+                    if(Math.random() > 0.5){                        
+                        deltaX *= -1;
+                    }                    
+                    if(Math.random() > 0.5){
+                        deltaY *= -1;
+                    }
+                    
+                    Integer score2 = Integer.parseInt(points2.getText())+1;
+                    if (score2 >= 10)
+                        points2.setLayoutX(width-(0.1*width+(fontSize*1)));
+                    points2.setText(score2.toString());
+                    
+                    if(score2 == winScore){
+                        loop.pause();
+                        info.setLayoutX(0.3*width+(fontSize*1));
+                        info.setTextFill(Color.FIREBRICK);
+                        if(computer){
+                            info.setText("Computer WIN!");
+                        } else {
+                            info.setText("Player 2 WIN!");
+                        }
+                        
+                        Pong.applause.play();
+                        rematchText.setVisible(true);
+                        gameOver = true;
+                    }
+                    
+                    circle2.setFill(Color.RED);
+                    PauseTransition pause = new PauseTransition(Duration.seconds(0.5));
+                    pause.setOnFinished(new EventHandler<ActionEvent> () {
+                        @Override
+                        public void handle(ActionEvent event){
+                            circle2.setFill(Color.AQUA);
+                        }
+                    });
+                    pause.play(); 
+                } else if (circle.getLayoutX()-circle.getRadius() > bounds.getMaxX()) {
+                    
+                    durationToSet = durationAtStart;
+                    pauseStamps = 6;
+                    
+                    paddle1.setLayoutY(gameArea.getMinHeight()/2-(paddle1.getMinHeight()/2));
+                    paddle2.setLayoutY(gameArea.getMinHeight()/2-(paddle2.getMinHeight()/2));
+                    
+                    circle.setLayoutX(gameArea.getMinWidth()/2-5+(circle.getRadius()));
+                    circle.setLayoutY(gameArea.getMinHeight()/2-5+(circle.getRadius()));
+                    if(Math.random() > 0.5){                        
+                        deltaX *= -1;
+                    }                    
+                    if(Math.random() > 0.5){
+                        deltaY *= -1;
+                    }
+                    
+                    Integer score1 = Integer.parseInt(points1.getText())+1;
+                    if(score1 >= 10)
+                        points1.setLayoutX(0.06*width+(fontSize*0));                    
+                    points1.setText(score1.toString());
+                   
+                    if(score1 == winScore){
+                        loop.pause();
+                        info.setLayoutX(0.3*width+(fontSize*1));
+                        info.setTextFill(Color.FIREBRICK);                        
+                        info.setText("Player 1 WON!");
+                        Pong.applause.play();
+                        rematchText.setVisible(true);
+                        gameOver = true;
+                    }
+                    
+                    circle1.setFill(Color.RED);                    
+                    PauseTransition pause = new PauseTransition(Duration.seconds(0.5));
+                    pause.setOnFinished(new EventHandler<ActionEvent> () {
+                        @Override
+                        public void handle(ActionEvent event){
+                            circle1.setFill(Color.AQUA);
+                        }
+                    });                    
+                    pause.play(); 
+                }
+
+                if (atBottomBorder || atTopBorder) {
+                    Pong.wallBounce.play();
+                    deltaY *= -1;
+                }
+            }
+        }));
+        
+        return loop;
     }
     
 
@@ -439,6 +479,7 @@ public class Pong extends Application {
                 Pong.CLICK.play();
                 Pong.MUSIC.stop();
                 musicStatus = true;
+                computer = false;
                 game(primaryStage, false);                
            }
         });
@@ -449,6 +490,7 @@ public class Pong extends Application {
                 Pong.CLICK.play();
                 Pong.MUSIC.stop();
                 musicStatus = true;
+                computer = true;
                 game(primaryStage, true);
             }
         });
@@ -660,9 +702,7 @@ public class Pong extends Application {
             musicStatus = false;
         }
         
-        
-   
-        
+
         Button playBtn = new Button("PLAY");
         playBtn.setAlignment(Pos.CENTER);
         playBtn.setMinSize(200, 40);
