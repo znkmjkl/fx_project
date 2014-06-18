@@ -36,7 +36,6 @@ import javafx.util.Duration;
 
 public class Pong extends Application {
 
-    public static Circle circle;
     public static Pane canvas;
     private static final AudioClip MUSIC = new AudioClip(Pong.class.getResource("/mp3.mp3").toString());
     private static final AudioClip CLICK = new AudioClip(Pong.class.getResource("/click.mp3").toString());
@@ -47,7 +46,7 @@ public class Pong extends Application {
     public boolean musicON = true;
     public boolean musicStatus = true;
     public String mode = "medium";
-    public int speed;   
+    public double speed;   
     public boolean GameStatus = true;
     public Timeline loop;
     public Timeline pauseExecuting;
@@ -61,21 +60,26 @@ public class Pong extends Application {
     
     public Label gameArea;
     
-    int height = 360, width = 600, fontSize;
+    
 
     Label info = new Label("Press SPACE to start");
-    Label rematchText = new Label();
+    final Text rematchText = new Text("REMATCH? (Y/N)");
+    
     boolean computer = false;
-    Circle circle1 = new Circle(25, Color.AQUA);; 
-    Circle circle2 = new Circle(25, Color.AQUA);;
+    public Circle circle = new Circle(10, Color.BLUE);
+    public Circle circle1 = new Circle(25, Color.AQUAMARINE);; 
+    public Circle circle2 = new Circle(25, Color.AQUAMARINE);;
     
     double deltaX = 5;
     double deltaY = 5;
     
-    Text points1 = new Text("0");
-    Text points2 = new Text("0");
+    public Text points1 = new Text("0");
+    public Text points2 = new Text("0");
     
     int scorePanelHeight = 80;
+    int height = 360, width = 600;
+    double fontSize = scorePanelHeight/2.2;;
+    
     final int durationAtStart = 21;
     int durationToSet = durationAtStart;
 
@@ -87,6 +91,13 @@ public class Pong extends Application {
             */
     public void game(final Stage primaryStage, final boolean computer){
         canvas = new Pane();
+        
+        GameStatus = true;
+        gameOver = false;
+        
+        info.setText("Press SPACE to start");
+        points1.setText("0");
+        points2.setText("0");
         
         if(musicON){
             Pong.gameMUSIC.setCycleCount(INDEFINITE);           
@@ -103,12 +114,7 @@ public class Pong extends Application {
         gameArea.setMinWidth(width);
         gameArea.setStyle("-fx-background-image: url(\"/ppBoard.png\");");
         
-        final Text rematchText = new Text("REMATCH? (Y/N)");
-        rematchText.setLayoutX(width/2-120);
-        rematchText.setLayoutY(height/2-50);
-        rematchText.setFill(Color.CORAL);
-        rematchText.setFont(Font.font("Verdana", FontWeight.BOLD, 30));
-        rematchText.setVisible(false);
+       
         
         double fontSize = scorePanelHeight/2.2;
         
@@ -149,7 +155,7 @@ public class Pong extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
 
-        circle = new Circle(10, Color.BLUE);
+        
         circle.relocate(gameArea.getMinWidth()/2-circle.getRadius(), gameArea.getMinHeight()/2-circle.getRadius());
 
         canvas.getChildren().addAll(gameArea, circle, paddle1, rematchText, paddle2, circle1, points1, circle2, points2, info);
@@ -160,7 +166,7 @@ public class Pong extends Application {
                 int increasingValue = durationAtStart - durationToSet;
                 loop = getLoop(durationToSet);
                 loop.setCycleCount(increasingValue*50);
-                System.out.println(increasingValue*50);
+                //System.out.println(increasingValue*50);
                 //System.out.println((5000+increasingValue)/durationToSet);
                 loop.setOnFinished(this);
                 loop.play();
@@ -242,11 +248,12 @@ public class Pong extends Application {
                     loop.pause();
                     info.setLayoutX(0.25*width+(fontSize*0));
                     info.setText("Do you want to quit? (Y/N)");
-                    GameStatus = false;
-                    points1 = new Text("0"); points2 = new Text("0");
-                    durationToSet = 25;
+                    GameStatus = false;  
+           
                 }                
             } else if (event.getCode() == KeyCode.Y && GameStatus == false){
+                durationToSet = 25;
+                points1 = new Text("0"); points2 = new Text("0");
                 Pong.gameMUSIC.stop();
                 start(primaryStage);
             } else if (event.getCode() == KeyCode.N && GameStatus == false){
@@ -270,6 +277,7 @@ public class Pong extends Application {
                 loop.pause();
             } else if (gameOver == true && event.getCode() == KeyCode.N){
                 gameOver = false;
+                info.setTextFill(Color.BLACK);
                 Pong.gameMUSIC.stop();
                 start(primaryStage);
             }
@@ -294,6 +302,12 @@ public class Pong extends Application {
     }  
     
     public Timeline getLoop(int duration) {
+        rematchText.setLayoutX(width/2-120);
+        rematchText.setLayoutY(height/2-50);
+        rematchText.setFill(Color.CORAL);
+        rematchText.setFont(Font.font("Verdana", FontWeight.BOLD, 30));
+        rematchText.setVisible(false);
+        
         loop = new Timeline(new KeyFrame(Duration.millis(duration), new EventHandler<ActionEvent>() {
 
             @Override
@@ -337,21 +351,27 @@ public class Pong extends Application {
                 
                 if (computer){
                     if(mode == "easy"){
-                        speed = 5;
+                        speed = 6;
                     } else if(mode == "medium"){
-                        speed = 10;
+                        speed = 8;
                     } else if(mode == "hard"){                    
-                        speed = 10;
+                        speed = 9;
                     }
+                    
                     if (circle.getLayoutY() > paddle2.getLayoutY() && deltaX > 0){
-                        if (height-100 > paddle2.getLayoutY())
-                            paddle2.setLayoutY(paddle2.getLayoutY() + speed);
+                        if (height-100 > paddle2.getLayoutY()){
+                            if(paddle2.getLayoutY()+speed > 260){
+                                paddle2.setLayoutY(paddle2.getLayoutY() + 260 - paddle2.getLayoutY());
+                            } else {
+                                paddle2.setLayoutY(paddle2.getLayoutY() + speed);
+                            }
+                        }
                     } else if (circle.getLayoutY() < paddle2.getLayoutY() && deltaX > 0){
                         if (gameArea.getBoundsInLocal().getMinY()/2 < paddle2.getLayoutY())
                             paddle2.setLayoutY(paddle2.getLayoutY() - speed);                    
-                    } 
+                    }           
                 }
-                
+                System.out.println(paddle2.getLayoutY());
                 //Jeśli jest już za którąś z paletek
                 if (circle.getLayoutX() < bounds.getMinX()-circle.getRadius()*2) {
                     
@@ -360,9 +380,10 @@ public class Pong extends Application {
                     
                     paddle1.setLayoutY(gameArea.getMinHeight()/2-(paddle1.getMinHeight()/2));
                     paddle2.setLayoutY(gameArea.getMinHeight()/2-(paddle2.getMinHeight()/2));
-                    
-                    circle.setLayoutX(gameArea.getMinWidth()/2-5+(circle.getRadius()));
-                    circle.setLayoutY(gameArea.getMinHeight()/2-5+(circle.getRadius()));
+                    circle.setLayoutX(gameArea.getMinWidth()/2-circle.getRadius()+10);
+                    circle.setLayoutY(gameArea.getMinHeight()/2-circle.getRadius()+10);
+                    //circle.setLayoutX(gameArea.getMinWidth()/2-5+(circle.getRadius()));
+                    //circle.setLayoutY(gameArea.getMinHeight()/2-5+(circle.getRadius()));
                     if(Math.random() > 0.5){                        
                         deltaX *= -1;
                     }                    
@@ -407,8 +428,10 @@ public class Pong extends Application {
                     paddle1.setLayoutY(gameArea.getMinHeight()/2-(paddle1.getMinHeight()/2));
                     paddle2.setLayoutY(gameArea.getMinHeight()/2-(paddle2.getMinHeight()/2));
                     
-                    circle.setLayoutX(gameArea.getMinWidth()/2-5+(circle.getRadius()));
-                    circle.setLayoutY(gameArea.getMinHeight()/2-5+(circle.getRadius()));
+                    circle.setLayoutX(gameArea.getMinWidth()/2-circle.getRadius()+10);
+                    circle.setLayoutY(gameArea.getMinHeight()/2-circle.getRadius()+10);
+                    //circle.setLayoutX(gameArea.getMinWidth()/2-5+(circle.getRadius()));
+                    //circle.setLayoutY(gameArea.getMinHeight()/2-5+(circle.getRadius()));
                     if(Math.random() > 0.5){                        
                         deltaX *= -1;
                     }                    
@@ -425,7 +448,7 @@ public class Pong extends Application {
                         loop.pause();
                         info.setLayoutX(0.3*width+(fontSize*1));
                         info.setTextFill(Color.FIREBRICK);                        
-                        info.setText("Player 1 WON!");
+                        info.setText("Player 1 WIN!");
                         Pong.applause.play();
                         rematchText.setVisible(true);
                         gameOver = true;
@@ -765,7 +788,7 @@ public class Pong extends Application {
             @Override   
             public void handle(ActionEvent e) {
                 Pong.CLICK.play();
-                PauseTransition pause = new PauseTransition(Duration.seconds(0.5));
+                PauseTransition pause = new PauseTransition(Duration.seconds(0.3));
                 pause.setOnFinished(new EventHandler<ActionEvent> () {
                 @Override
                     public void handle(ActionEvent event){
