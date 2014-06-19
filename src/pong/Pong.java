@@ -416,11 +416,17 @@ public class Pong extends Application {
                     if(mode == "easy"){
                         speed = 6;
                     } else if(mode == "medium"){
-                        speed = 8;
+                       // speed = 8;
+                        
+                        if(Math.abs(circle.getLayoutY()-paddle2.getLayoutY()) > 140){
+                            speed = 5;
+                        } else {
+                            speed = 8;
+                        }
                     } else if(mode == "hard"){                    
-                        speed = 9;
+                        speed = 8;
                     }
-                    
+                    System.out.println(speed);
                     if (circle.getLayoutY() > paddle2.getLayoutY() && deltaX > 0){
                         if (height-100 > paddle2.getLayoutY()){
                             if(paddle2.getLayoutY()+speed > 260){
