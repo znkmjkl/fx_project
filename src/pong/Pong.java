@@ -50,8 +50,12 @@ public class Pong extends Application {
     public boolean GameStatus = true;
     public Timeline loop;
     public Timeline pauseExecuting;
+    public Timeline countdown;
     public boolean gameOver = false;
     public int winScore = 5;
+    //public String marginString = "           ";
+    
+    public int countdownNumber = 2;
     
     public int pauseStamps = 0;
     
@@ -60,8 +64,6 @@ public class Pong extends Application {
     
     public Label gameArea;
     
-    
-
     Label info = new Label("Press SPACE to start");
     final Text rematchText = new Text("REMATCH? (Y/N)");
     
@@ -77,8 +79,8 @@ public class Pong extends Application {
     public Text points2 = new Text("0");
     
     int scorePanelHeight = 80;
+    double fontSize = scorePanelHeight/2.2;
     int height = 360, width = 600;
-    double fontSize = scorePanelHeight/2.2;;
     
     final int durationAtStart = 21;
     int durationToSet = durationAtStart;
@@ -117,9 +119,7 @@ public class Pong extends Application {
         gameArea.setMinWidth(width);
         gameArea.setStyle("-fx-background-image: url(\"/ppBoard.png\");");
         
-       
         
-        double fontSize = scorePanelHeight/2.2;
         
         points1.setLayoutX(0.06*width+(fontSize*0.25));       
         points1.setLayoutY(height+scorePanelHeight*0.65);
@@ -137,7 +137,7 @@ public class Pong extends Application {
         circle2.setLayoutX(width-(0.1*width+(fontSize*0.5)));
         circle2.setLayoutY(height+scorePanelHeight*0.5);
         
-        info.setLayoutX(0.3*width+(fontSize*0.2));
+        info.setLayoutX(0.3*width+(fontSize*0.2)-5);
         info.setLayoutY(height+scorePanelHeight*0.3);
         info.setStyle("-fx-font-size: " + fontSize/1.5 + "px;");
         
@@ -175,6 +175,27 @@ public class Pong extends Application {
                 loop.setCycleCount(50);
                 loop.setOnFinished(this);
                 loop.play();
+            }
+        };
+        
+        EventHandler<ActionEvent> decreaseNumber = new EventHandler<ActionEvent>() {
+            public void handle(final ActionEvent t) {
+                
+               countdown = getCountdownLoop(--countdownNumber);
+               if (countdownNumber > 0) countdown.setOnFinished(this);
+               else countdown.setOnFinished(new EventHandler<ActionEvent>() { 
+                @Override
+                public void handle(final ActionEvent t) {
+                    info.setText("Press SPACE to pause");
+                    info.setStyle("-fx-font-size: " + fontSize/1.5 + "px;");
+                    info.setLayoutX(info.getLayoutX()-105);
+                    info.setLayoutY(info.getLayoutY()+20);
+                    loop.play();
+            }
+               });
+               countdown.setCycleCount(1);
+               countdown.play();
+               
             }
         };
         
@@ -240,10 +261,27 @@ public class Pong extends Application {
                 }
             }
             if (event.getCode() == KeyCode.SPACE) {
-                if (loop.getStatus() == Animation.Status.STOPPED || loop.getStatus() == Animation.Status.PAUSED && GameStatus == true && gameOver == false) {
+                if (loop.getStatus() == Animation.Status.STOPPED && GameStatus == true && gameOver == false) {
+                    
+                    info.setStyle("-fx-font-size: " + fontSize*1.4 + "px;");
+                    info.setLayoutX(info.getLayoutX()+105);
+                    info.setLayoutY(info.getLayoutY()-20);
+                    info.setText("3");
+                    
+                        countdown = getCountdownLoop(countdownNumber);
+                        countdown.setCycleCount(1);
+                        countdown.setOnFinished(decreaseNumber);
+                        countdown.play();
+                      
+                    
+                    //loop.play();
+                    //info.setText("Press SPACE to pause");
+                } else if (loop.getStatus() == Animation.Status.PAUSED) {
                     loop.play();
                     info.setText("Press SPACE to pause");
-                } else if (loop.getStatus() == Animation.Status.RUNNING) {
+                    
+                } 
+                else if (loop.getStatus() == Animation.Status.RUNNING) {
                     loop.pause();
                     info.setText("Press SPACE to resume");
                 }
@@ -260,6 +298,7 @@ public class Pong extends Application {
                 points1 = new Text("0"); points2 = new Text("0");
                 Pong.gameMUSIC.stop();
                 start(primaryStage);
+                countdownNumber = 2;
             } else if (event.getCode() == KeyCode.N && GameStatus == false){
                 GameStatus = true;
                 info.setLayoutX(0.3*width+(fontSize*0.2));
@@ -303,7 +342,22 @@ public class Pong extends Application {
             }
           }
         });
+        
     }  
+    
+    
+    public Timeline getCountdownLoop(int number) {
+        countdown = new Timeline(new KeyFrame(Duration.millis(1000), new EventHandler<ActionEvent>() {
+            
+            @Override
+            public void handle(final ActionEvent t) {
+                info.setText(Integer.toString(number));
+                
+            }
+        }));
+        
+        return countdown;
+    }
     
     public Timeline getLoop(int duration) {
         rematchText.setLayoutX(width/2-120);
@@ -404,9 +458,10 @@ public class Pong extends Application {
                     points2.setText(score2.toString());
                     
                     if(score2 == winScore){
-                        loop.pause();
+                        loop.stop();
                         info.setLayoutX(0.3*width+(fontSize*1));
                         info.setTextFill(Color.FIREBRICK);
+                        countdownNumber = 2;
                         if(computer){
                             info.setText("Computer WIN!");
                         } else {
@@ -454,10 +509,11 @@ public class Pong extends Application {
                     points1.setText(score1.toString());
                    
                     if(score1 == winScore){
-                        loop.pause();
+                        loop.stop();
                         info.setLayoutX(0.3*width+(fontSize*1));
                         info.setTextFill(Color.FIREBRICK);                        
                         info.setText("Player 1 WIN!");
+                        countdownNumber = 2;
                         Pong.applause.play();
                         rematchText.setVisible(true);
                         gameOver = true;
