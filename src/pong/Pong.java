@@ -60,7 +60,7 @@ public class Pong extends Application {
     public boolean gameOver = false;
     public int winScore = 10;
     public int tmp1,tmp2;
-    //public String marginString = "           ";
+    public boolean duringCountdown = false;
     
     public int countdownNumber = 2;
     
@@ -193,6 +193,7 @@ public class Pong extends Application {
                else countdown.setOnFinished(new EventHandler<ActionEvent>() { 
                 @Override
                 public void handle(final ActionEvent t) {
+                    duringCountdown = false;
                     info.setText("Press SPACE to pause");
                     info.setStyle("-fx-font-size: " + fontSize/1.5 + "px;");
                     info.setLayoutX(info.getLayoutX()-105);
@@ -267,8 +268,11 @@ public class Pong extends Application {
                         movePaddle2Down.start();                   
                 }
             }
+            
             if (event.getCode() == KeyCode.SPACE) {
-                if (loop.getStatus() == Animation.Status.STOPPED && GameStatus == true && gameOver == false) {
+                if (loop.getStatus() == Animation.Status.STOPPED && GameStatus == true && gameOver == false && !duringCountdown) {
+                    
+                    duringCountdown = true;
                     
                     info.setStyle("-fx-font-size: " + fontSize*1.4 + "px;");
                     info.setLayoutX(info.getLayoutX()+105);
@@ -279,10 +283,7 @@ public class Pong extends Application {
                         countdown.setCycleCount(1);
                         countdown.setOnFinished(decreaseNumber);
                         countdown.play();
-                      
-                    
-                    //loop.play();
-                    //info.setText("Press SPACE to pause");
+
                 } else if (loop.getStatus() == Animation.Status.PAUSED) {
                     loop.play();
                     info.setText("Press SPACE to pause");
