@@ -1,5 +1,7 @@
 package pong;
 
+import java.util.ArrayList;
+import java.util.List;
 import javafx.animation.Animation;
 import javafx.animation.AnimationTimer;
 import javafx.animation.KeyFrame;
@@ -17,6 +19,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
@@ -52,7 +56,7 @@ public class Pong extends Application {
     public Timeline pauseExecuting;
     public Timeline countdown;
     public boolean gameOver = false;
-    public int winScore = 5;
+    public int winScore = 10;
     //public String marginString = "           ";
     
     public int countdownNumber = 2;
@@ -729,6 +733,8 @@ public class Pong extends Application {
         primaryStage.show();
     }
     
+    // CREDITS
+    
     public void credits(final Stage primaryStage){
         GridPane grid = new GridPane();
         grid.setAlignment(Pos.CENTER);
@@ -776,6 +782,113 @@ public class Pong extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();        
     }
+    
+    public void instructions(final Stage primaryStage){
+        GridPane grid = new GridPane();
+        grid.setAlignment(Pos.CENTER);
+        grid.setHgap(10);
+        grid.setVgap(10);
+        
+        
+        final List<String> images = new ArrayList<>();
+       
+        Text text1 = new Text();
+        text1.setText("PLAYER 1 keys:");
+        text1.setTextAlignment(TextAlignment.CENTER);
+        text1.setUnderline(true);
+        text1.setFill(Color.WHITE);
+        text1.setFont(Font.font ("Verdana", 21));
+        grid.add(text1,0,0);
+        
+        Image keyW = new Image("/buttons/W_key.png");
+        ImageView img1 = new ImageView();
+        img1.setImage(keyW);
+        img1.setFitHeight(40);
+        img1.setFitWidth(40);
+        grid.add(img1,0,1);
+        
+        Text t1 = new Text("move paddle UP");
+        t1.setFill(Color.WHITE);
+        t1.setFont(Font.font ("Verdana", 16));
+        grid.add(t1,1,1);
+        
+        Image keyS = new Image("/buttons/S_key.png");
+        ImageView img2 = new ImageView();
+        img2.setImage(keyS);
+        img2.setFitHeight(40);
+        img2.setFitWidth(40);
+        grid.add(img2,0,2);
+        
+        Text t2 = new Text("move paddle DOWN");
+        t2.setFill(Color.WHITE);
+        t2.setFont(Font.font ("Verdana", 16));
+        grid.add(t2,1,2);
+        
+        Text text2 = new Text();
+        text2.setText("PLAYER 2 keys:");
+        text2.setTextAlignment(TextAlignment.CENTER);
+        text2.setUnderline(true);
+        text2.setFill(Color.WHITE);
+        text2.setFont(Font.font ("Verdana", 21));
+        grid.add(text2,0,3);
+        
+        Image keyUP = new Image("/buttons/UP_key.png");
+        ImageView img3 = new ImageView();
+        img3.setImage(keyUP);
+        img3.setFitHeight(40);
+        img3.setFitWidth(40);
+        grid.add(img3,0,4);
+        
+        Text t3 = new Text("move paddle UP");
+        t3.setFill(Color.WHITE);
+        t3.setFont(Font.font ("Verdana", 16));
+        grid.add(t3,1,4);
+        
+        Image keyDOWN = new Image("/buttons/DOWN_key.png");
+        ImageView img4 = new ImageView();
+        img4.setImage(keyDOWN);
+        img4.setFitHeight(40);
+        img4.setFitWidth(40);
+        grid.add(img4,0,5);
+        
+        Text t4 = new Text("move paddle DOWN");
+        t4.setFill(Color.WHITE);
+        t4.setFont(Font.font ("Verdana", 16));
+        grid.add(t4,1,5);
+        
+//        Text text3 = new Text();
+//        text3.setText("OTHER keys:");
+//        text3.setTextAlignment(TextAlignment.CENTER);
+//        text3.setUnderline(true);
+//        text3.setFill(Color.WHITE);
+//        text3.setFont(Font.font ("Verdana", 21));
+//        grid.add(text3,0,6);
+        
+//        Image keySPACE = new Image("/buttons/SPACE_key.png");
+//        ImageView img5 = new ImageView();
+//        img5.setImage(keySPACE);
+//        //img4.setFitHeight(40);
+//        //img4.setFitWidth(40);
+//        grid.add(img5,0,7);
+        
+        Button backBtn = new Button("BACK");
+        backBtn.setMinSize(200, 40);
+        grid.add(backBtn,1,8);
+        
+        backBtn.setOnAction(new EventHandler<ActionEvent>() {
+           @Override
+            public void handle(ActionEvent e) {
+               Pong.CLICK.play();
+               start(primaryStage);             
+           }
+        });
+        
+        Scene scene = new Scene(grid, 600, 400);       
+        grid.getStylesheets().add("style.css");
+        primaryStage.setTitle("PING PONG - INSTRUCTIONS");
+        primaryStage.setScene(scene);
+        primaryStage.show(); 
+    }
     //MENU
     @Override
     public void start(final Stage primaryStage) {
@@ -807,10 +920,10 @@ public class Pong extends Application {
         creditsBtn.setMinSize(200, 40);
         grid.add(creditsBtn, 0,2);
         
-        Button infoBtn = new Button("INSTRUCTIONS");
-        infoBtn.setAlignment(Pos.CENTER);
-        infoBtn.setMinSize(200, 40);
-        grid.add(infoBtn, 0,3);
+        Button istrBtn = new Button("INSTRUCTIONS");
+        istrBtn.setAlignment(Pos.CENTER);
+        istrBtn.setMinSize(200, 40);
+        grid.add(istrBtn, 0,3);
         
         Button quitBtn = new Button("QUIT");
         quitBtn.setAlignment(Pos.CENTER);
@@ -842,10 +955,11 @@ public class Pong extends Application {
             }
         });
         
-        infoBtn.setOnAction(new EventHandler<ActionEvent>(){
+        istrBtn.setOnAction(new EventHandler<ActionEvent>(){
             @Override
             public void handle(ActionEvent e){
                 Pong.CLICK.play();
+                instructions(primaryStage);
             }
         });
         
