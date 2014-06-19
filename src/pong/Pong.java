@@ -50,13 +50,14 @@ public class Pong extends Application {
     public boolean musicON = true;
     public boolean musicStatus = true;
     public String mode = "medium";
-    public double speed;   
+    public int speed;   
     public boolean GameStatus = true;
     public Timeline loop;
     public Timeline pauseExecuting;
     public Timeline countdown;
     public boolean gameOver = false;
     public int winScore = 10;
+    public int tmp1,tmp2;
     //public String marginString = "           ";
     
     public int countdownNumber = 2;
@@ -399,12 +400,14 @@ public class Pong extends Application {
                 final boolean atTopBorder = circle.getLayoutY() <= (bounds.getMinY() + circle.getRadius());
                 
                 //Jeśli trafiła w którąś paletkę - zmiana kierunku na przeciwny
-                if (atLeftBorder) {
+                if (atLeftBorder) {                    
                     ballBounce.play();                    
                     deltaX *= -1;
                     numberOfBounces++;
                     
                 } else if (atRightBorder) {
+                    tmp1 = 0;
+                    tmp2 = 0;
                     ballBounce.play();                    
                     deltaX *= -1;
                     numberOfBounces++;
@@ -416,34 +419,39 @@ public class Pong extends Application {
                     if(mode == "easy"){
                         speed = 6;
                     } else if(mode == "medium"){
-                       // speed = 8;
-                        
-                        if(Math.abs(circle.getLayoutY()-paddle2.getLayoutY()) > 140){
-                            speed = 5;
+
+                        if(tmp1 > 330 || tmp2 > 330){
+                            speed = 6;
                         } else {
                             speed = 8;
                         }
                     } else if(mode == "hard"){                    
                         speed = 8;
                     }
-                    System.out.println(speed);
+                    
                     if (circle.getLayoutY() > paddle2.getLayoutY() && deltaX > 0){
                         if (height-100 > paddle2.getLayoutY()){
+                           
                             if(paddle2.getLayoutY()+speed > 260){
                                 paddle2.setLayoutY(paddle2.getLayoutY() + 260 - paddle2.getLayoutY());
                             } else {
                                 paddle2.setLayoutY(paddle2.getLayoutY() + speed);
-                            }
+                            }                            
+                            tmp1 = tmp1 + speed;
                         }
+                        
                     } else if (circle.getLayoutY() < paddle2.getLayoutY() && deltaX > 0){
                         if (gameArea.getBoundsInLocal().getMinY()/2 < paddle2.getLayoutY())
-                            paddle2.setLayoutY(paddle2.getLayoutY() - speed);                    
-                    }           
+                            paddle2.setLayoutY(paddle2.getLayoutY() - speed);
+                        tmp2 = tmp2 + speed;
+                    }                   
+                    
                 }
 
                 //Jeśli jest już za którąś z paletek
                 if (circle.getLayoutX() < bounds.getMinX()-circle.getRadius()*2) {
-                    
+                    tmp1 = 0;
+                    tmp2 = 0;
                     stampCounter = 0;
                     speedLevelStamps = 4;
                     
@@ -493,7 +501,8 @@ public class Pong extends Application {
                     });
                     pause.play(); 
                 } else if (circle.getLayoutX()-circle.getRadius() > bounds.getMaxX()) {
-                    
+                    tmp1 = 0;
+                    tmp2 = 0;
                     stampCounter = 0;
                     speedLevelStamps = 4;
                     
