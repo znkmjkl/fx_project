@@ -86,6 +86,9 @@ public class Pong extends Application {
     int numberOfBounces = 0;
     
     final int paddleStep = 5;
+    
+    int stampCounter = 0;
+    int speedLevelStamps = 4;
     /*
         GRA
             */
@@ -162,19 +165,21 @@ public class Pong extends Application {
         
         EventHandler<ActionEvent> increaseSpeed = new EventHandler<ActionEvent>() {
             public void handle(final ActionEvent t) {
-                durationToSet -= 1;
-                int increasingValue = durationAtStart - durationToSet;
+                
+                if (++stampCounter >= speedLevelStamps) {
+                    durationToSet -= 1;
+                    speedLevelStamps *= 1.3;
+                } 
+                
                 loop = getLoop(durationToSet);
-                loop.setCycleCount(increasingValue*50);
-                //System.out.println(increasingValue*50);
-                //System.out.println((5000+increasingValue)/durationToSet);
+                loop.setCycleCount(50);
                 loop.setOnFinished(this);
                 loop.play();
             }
         };
         
         loop = getLoop(durationToSet);
-        loop.setCycleCount(200);
+        loop.setCycleCount(150);
         loop.setOnFinished(increaseSpeed);
         
         pauseExecuting = new Timeline(new KeyFrame(Duration.millis(250), new EventHandler<ActionEvent>() {
@@ -217,7 +222,6 @@ public class Pong extends Application {
                 paddle2.setLayoutY(paddle2.getLayoutY()+paddleStep);
           }
         };
-
 
         scene.setOnKeyPressed(new EventHandler<KeyEvent>() {
           @Override
@@ -316,6 +320,7 @@ public class Pong extends Application {
                 if(pauseStamps <= 0) {
                     circle.setLayoutX(circle.getLayoutX() + deltaX);
                     circle.setLayoutY(circle.getLayoutY() + deltaY);
+                    
                 } else {
                     pauseExecuting.play();
                 }
@@ -328,7 +333,7 @@ public class Pong extends Application {
                 double y1 = paddle1.getLayoutY();
                 double y2 = paddle2.getLayoutY();
                 
-                //zmienne określające, czy piłeczka trafiła w paletkę
+                //Zmienne określające, czy piłeczka trafiła w paletkę
                 final boolean atRightBorder = (circle.getLayoutX()+circle.getRadius() == (maxX)) && ((y2) <= circle.getLayoutY() && (y2+paddle1.getMinHeight()) >= circle.getLayoutY());
                 final boolean atLeftBorder = (circle.getLayoutX() == (minX+circle.getRadius())) && ((y1) <= circle.getLayoutY() && (y1+paddle1.getMinHeight()) >= circle.getLayoutY());
                 
@@ -371,9 +376,12 @@ public class Pong extends Application {
                             paddle2.setLayoutY(paddle2.getLayoutY() - speed);                    
                     }           
                 }
-                System.out.println(paddle2.getLayoutY());
+
                 //Jeśli jest już za którąś z paletek
                 if (circle.getLayoutX() < bounds.getMinX()-circle.getRadius()*2) {
+                    
+                    stampCounter = 0;
+                    speedLevelStamps = 4;
                     
                     durationToSet = durationAtStart;
                     pauseStamps = 6;
@@ -382,8 +390,7 @@ public class Pong extends Application {
                     paddle2.setLayoutY(gameArea.getMinHeight()/2-(paddle2.getMinHeight()/2));
                     circle.setLayoutX(gameArea.getMinWidth()/2-circle.getRadius()+10);
                     circle.setLayoutY(gameArea.getMinHeight()/2-circle.getRadius()+10);
-                    //circle.setLayoutX(gameArea.getMinWidth()/2-5+(circle.getRadius()));
-                    //circle.setLayoutY(gameArea.getMinHeight()/2-5+(circle.getRadius()));
+
                     if(Math.random() > 0.5){                        
                         deltaX *= -1;
                     }                    
@@ -422,6 +429,9 @@ public class Pong extends Application {
                     pause.play(); 
                 } else if (circle.getLayoutX()-circle.getRadius() > bounds.getMaxX()) {
                     
+                    stampCounter = 0;
+                    speedLevelStamps = 4;
+                    
                     durationToSet = durationAtStart;
                     pauseStamps = 6;
                     
@@ -430,8 +440,7 @@ public class Pong extends Application {
                     
                     circle.setLayoutX(gameArea.getMinWidth()/2-circle.getRadius()+10);
                     circle.setLayoutY(gameArea.getMinHeight()/2-circle.getRadius()+10);
-                    //circle.setLayoutX(gameArea.getMinWidth()/2-5+(circle.getRadius()));
-                    //circle.setLayoutY(gameArea.getMinHeight()/2-5+(circle.getRadius()));
+
                     if(Math.random() > 0.5){                        
                         deltaX *= -1;
                     }                    
