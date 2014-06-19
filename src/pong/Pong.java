@@ -9,6 +9,7 @@ import javafx.animation.PauseTransition;
 import javafx.animation.Timeline;
 import javafx.application.Application;
 import static javafx.application.Application.launch;
+import static javafx.application.Application.launch;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
@@ -19,6 +20,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
 import javafx.scene.control.TextField;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
@@ -722,6 +724,7 @@ public class Pong extends Application {
                     musicON = true;
                     Pong.MUSIC.setCycleCount(INDEFINITE);           
                     Pong.MUSIC.play();
+                    musicStatus = false;
                     musicBtn.setText("MUSIC: ON");
                 }
            }
@@ -753,31 +756,52 @@ public class Pong extends Application {
     public void credits(final Stage primaryStage){
         GridPane grid = new GridPane();
         grid.setAlignment(Pos.CENTER);
+        grid.setHgap(30);
+        grid.setVgap(30);
+        
+        DropShadow ds = new DropShadow();
+        ds.setOffsetY(3.0f);
+        ds.setColor(Color.color(0.4f, 0.4f, 0.4f));
+        ds.setColor(Color.AQUA);
+ 
+        
+        
+        Text t = new Text();
+        t.setEffect(ds);
+        t.setCache(true);
+        t.setX(10.0f);
+        t.setY(270.0f);
+        t.setFill(Color.CORNSILK);
+        t.setText("AUTHORS:"); 
+        t.setFont(Font.font(null, FontWeight.BOLD, 25));
+        
+        grid.add(t,0,0);
+        
         grid.setHgap(10);
         grid.setVgap(10);
         
+        Text t1 = new Text();
+        t1.setEffect(ds);
+        t1.setCache(true);
+        t1.setX(10.0f);
+        t1.setY(270.0f);
+        t1.setFill(Color.RED);
+        t1.setText("Mateusz Jancarz"); 
+        t1.setFont(Font.font(null, FontWeight.BOLD, 25));
+        grid.add(t1,0,2);
+
         
-        Text text1 = new Text();
-        text1.setText("AUTHORS:");
-        text1.setTextAlignment(TextAlignment.CENTER);
-        text1.setUnderline(true);
-        text1.setFill(Color.WHITE);
-        text1.setFont(Font.font ("Verdana", 30));
-        grid.add(text1,0,0);
+        Text t2 = new Text();
+        t2.setEffect(ds);
+        t2.setCache(true);
+        t2.setX(10.0f);
+        t2.setY(270.0f);
+        t2.setFill(Color.RED);
+        t2.setText("Michał Pachel"); 
+        t2.setFont(Font.font(null, FontWeight.BOLD, 25));
+        grid.add(t2,0,3);
         
-        Text text2 = new Text();
-        text2.setText("Mateusz Jancarz");
-        text2.setTextAlignment(TextAlignment.CENTER);
-        text2.setFill(Color.WHITE);
-        text2.setFont(Font.font ("Verdana", 20));
-        grid.add(text2,0,1);
         
-        Text text3 = new Text();
-        text3.setText("Michał Pachel");
-        text3.setTextAlignment(TextAlignment.CENTER);
-        text3.setFill(Color.WHITE);
-        text3.setFont(Font.font ("Verdana", 20));
-        grid.add(text3,0,2);
         
         Button backBtn = new Button("BACK");
         backBtn.setMinSize(200, 40);
@@ -956,7 +980,7 @@ public class Pong extends Application {
         optionsBtn.setOnAction(new EventHandler<ActionEvent>() {
             @Override   
             public void handle(ActionEvent e) {          
-                Pong.CLICK.play();
+                Pong.CLICK.play();                
                 options(primaryStage);              
             }
         });
