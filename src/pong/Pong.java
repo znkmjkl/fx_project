@@ -9,9 +9,7 @@ import javafx.animation.PauseTransition;
 import javafx.animation.Timeline;
 import javafx.application.Application;
 import static javafx.application.Application.launch;
-import static javafx.application.Application.launch;
 import javafx.event.ActionEvent;
-import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.geometry.Bounds;
 import javafx.geometry.Pos;
@@ -19,13 +17,11 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
-import javafx.scene.control.TextField;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.media.AudioClip;
@@ -186,6 +182,7 @@ public class Pong extends Application {
         };
         
         EventHandler<ActionEvent> decreaseNumber = new EventHandler<ActionEvent>() {
+            @Override
             public void handle(final ActionEvent t) {
                 
                countdown = getCountdownLoop(--countdownNumber);
@@ -293,7 +290,7 @@ public class Pong extends Application {
                     loop.pause();
                     info.setText("Press SPACE to resume");
                 }
-            } else if (event.getCode() == KeyCode.ESCAPE){
+            } else if (event.getCode() == KeyCode.ESCAPE && !duringCountdown){
                 if(!gameOver){
                     loop.pause();
                     info.setLayoutX(0.25*width+(fontSize*0));
@@ -419,17 +416,20 @@ public class Pong extends Application {
                 //Ustawienia komputera
                 
                 if (computer){
-                    if(mode == "easy"){
-                        speed = 6;
-                    } else if(mode == "medium"){
-
-                        if(tmp1 > 330 || tmp2 > 330){
+                    switch (mode) {
+                        case "easy":
                             speed = 6;
-                        } else {
+                            break;
+                        case "medium":
+                            if(tmp1 > 330 || tmp2 > 330){
+                                speed = 6;
+                            } else {
+                                speed = 8;
+                            }   
+                            break;
+                        case "hard":
                             speed = 8;
-                        }
-                    } else if(mode == "hard"){                    
-                        speed = 8;
+                            break;
                     }
                     
                     if (circle.getLayoutY() > paddle2.getLayoutY() && deltaX > 0){
@@ -894,23 +894,8 @@ public class Pong extends Application {
         Text t4 = new Text("move paddle DOWN");
         t4.setFill(Color.WHITE);
         t4.setFont(Font.font ("Verdana", 16));
-        grid.add(t4,1,5);
-        
-//        Text text3 = new Text();
-//        text3.setText("OTHER keys:");
-//        text3.setTextAlignment(TextAlignment.CENTER);
-//        text3.setUnderline(true);
-//        text3.setFill(Color.WHITE);
-//        text3.setFont(Font.font ("Verdana", 21));
-//        grid.add(text3,0,6);
-        
-//        Image keySPACE = new Image("/buttons/SPACE_key.png");
-//        ImageView img5 = new ImageView();
-//        img5.setImage(keySPACE);
-//        //img4.setFitHeight(40);
-//        //img4.setFitWidth(40);
-//        grid.add(img5,0,7);
-        
+        grid.add(t4,1,5);        
+ 
         Button backBtn = new Button("BACK");
         backBtn.setMinSize(200, 40);
         grid.add(backBtn,1,8);
